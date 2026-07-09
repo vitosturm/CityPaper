@@ -24,7 +24,7 @@ export async function fetchWeather(city: string): Promise<WeatherData> {
 
   const [currentRes, forecastRes] = await Promise.all([
     fetch(`${BASE}/weather?q=${encodeURIComponent(city)}&units=metric&appid=${key}`),
-    fetch(`${BASE}/forecast?q=${encodeURIComponent(city)}&units=metric&cnt=3&appid=${key}`),
+    fetch(`${BASE}/forecast?q=${encodeURIComponent(city)}&units=metric&cnt=24&appid=${key}`),
   ]);
 
   if (!currentRes.ok) throw new Error(`OpenWeatherMap current error: ${currentRes.status}`);
@@ -42,10 +42,21 @@ export async function fetchWeather(city: string): Promise<WeatherData> {
       description: current.weather[0]!.description,
       icon: current.weather[0]!.icon,
     },
-    forecast: forecast.list.map((item) => ({
-      day: days[new Date(item.dt * 1000).getDay()]!,
-      temp: item.main.temp,
-      description: item.weather[0]!.description,
-    })),
+    forecast: (() => {
+      const seen = new Set<string>();
+      return forecast.list
+        .filter((item) => {
+          const dateKey = new Date(item.dt * 1000).toDateString();
+          if (seen.has(dateKey)) return false;
+          seen.add(dateKey);
+          return true;
+        })
+        .slice(0, 3)
+        .map((item) => ({
+          day: days[new Date(item.dt * 1000).getDay()]!,
+          temp: Math.round(item.main.temp),
+          description: item.weather[0]!.description,
+        }));
+    })(),
   };
 }

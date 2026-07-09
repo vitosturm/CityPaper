@@ -1,6 +1,7 @@
 {
   "name": "citypaper-backend",
   "version": "1.0.0",
+  "engines": { "node": ">=22" },
   "type": "module",
   "main": "dist/app.js",
   "scripts": {

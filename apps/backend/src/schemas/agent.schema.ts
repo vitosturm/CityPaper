@@ -42,7 +42,7 @@ export type NewsData = z.infer<typeof NewsDataSchema>;
 export const CityInfoDataSchema = z.object({
   summary: z.string(),
   highlights: z.array(z.string()),
-  population: z.number(),
+  population: z.number().optional().default(0),
 });
 export type CityInfoData = z.infer<typeof CityInfoDataSchema>;
 
