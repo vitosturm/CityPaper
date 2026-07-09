@@ -1,0 +1,62 @@
+{
+  "name": "citypaper-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/app.js",
+  "scripts": {
+    "dev": "node --watch --experimental-strip-types --env-file=.env --conditions=development src/app.ts",
+    "build": "tsc",
+    "start": "node --env-file=.env dist/app.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "imports": {
+    "#agents": {
+      "development": "./src/agents/index.ts",
+      "default": "./dist/agents/index.js"
+    },
+    "#tools": {
+      "development": "./src/tools/index.ts",
+      "default": "./dist/tools/index.js"
+    },
+    "#schemas": {
+      "development": "./src/schemas/index.ts",
+      "default": "./dist/schemas/index.js"
+    },
+    "#guardrails": {
+      "development": "./src/guardrails/index.ts",
+      "default": "./dist/guardrails/index.js"
+    },
+    "#middlewares": {
+      "development": "./src/middlewares/index.ts",
+      "default": "./dist/middlewares/index.js"
+    },
+    "#config": {
+      "development": "./src/config/index.ts",
+      "default": "./dist/config/index.js"
+    },
+    "#routers": {
+      "development": "./src/routers/index.ts",
+      "default": "./dist/routers/index.js"
+    },
+    "#controllers": {
+      "development": "./src/controllers/index.ts",
+      "default": "./dist/controllers/index.js"
+    }
+  },
+  "dependencies": {
+    "@openai/agents": "^0.0.11",
+    "express": "^5.2.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.0.0",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.4"
+  }
+}
