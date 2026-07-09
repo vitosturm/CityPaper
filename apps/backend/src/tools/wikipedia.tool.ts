@@ -5,8 +5,6 @@ const WikiSummarySchema = z.object({
   extract: z.string(),
 });
 
-const CITY_HIGHLIGHTS: Record<string, string[]> = {};
-
 export async function fetchCityInfo(city: string): Promise<CityInfoData> {
   const encoded = encodeURIComponent(city.replace(/ /g, "_"));
   const res = await fetch(
@@ -25,7 +23,7 @@ export async function fetchCityInfo(city: string): Promise<CityInfoData> {
     : 0;
 
   const sentences = extract.split(". ").slice(0, 3);
-  const highlights = CITY_HIGHLIGHTS[city.toLowerCase()] ?? sentences.slice(1);
+  const highlights = sentences.slice(1);
 
   return {
     summary: extract.slice(0, 500),

@@ -23,4 +23,10 @@ describe("fetchNews", () => {
     expect(result.sports.length).toBeGreaterThan(0);
     expect(result.culture.length).toBeGreaterThan(0);
   });
+
+  it("throws when API key is missing", async () => {
+    vi.stubEnv("NEWS_API_KEY", "");
+    const { fetchNews } = await import("./newsapi.tool.js");
+    await expect(fetchNews("Berlin")).rejects.toThrow(/NEWS_API_KEY is missing/i);
+  });
 });
