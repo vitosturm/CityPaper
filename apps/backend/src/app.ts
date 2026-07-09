@@ -14,7 +14,7 @@ const swaggerSpec = swaggerJsdoc({
     openapi: "3.0.0",
     info: { title: "CityPaper API", version: "1.0.0" },
   },
-  apis: ["./src/routers/*.ts"],
+  apis: ["./src/routers/*.ts", "./dist/routers/*.js"],
 });
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
