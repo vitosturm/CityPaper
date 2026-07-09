@@ -21,9 +21,12 @@ export async function runOrchestrator(city: string): Promise<Newspaper> {
     run(cityInfoAgent, `Fetch city info for ${city}`),
   ]);
 
-  const weather = (weatherResult.finalOutput as unknown) as WeatherData;
-  const news = (newsResult.finalOutput as unknown) as NewsData;
-  const cityInfo = (cityInfoResult.finalOutput as unknown) as CityInfoData;
+  const parseAgentOutput = (output: unknown): unknown =>
+    typeof output === "string" ? JSON.parse(output) : output;
+
+  const weather = parseAgentOutput(weatherResult.finalOutput) as WeatherData;
+  const news = parseAgentOutput(newsResult.finalOutput) as NewsData;
+  const cityInfo = parseAgentOutput(cityInfoResult.finalOutput) as CityInfoData;
 
   const editorInput = JSON.stringify({ city, weather, news, cityInfo });
   const editorResult = await run(editorAgent, editorInput);

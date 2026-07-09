@@ -1,1 +1,1 @@
-export * from "./orchestrator.agent.js";
+export { runOrchestrator } from "./orchestrator.agent.js";
