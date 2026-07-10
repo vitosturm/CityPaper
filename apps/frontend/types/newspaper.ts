@@ -37,6 +37,13 @@ export interface Editorial {
   editorsNote: string;
 }
 
+export interface Activity {
+  name: string;
+  description: string;
+  category: string;
+  unsplashQuery: string;
+}
+
 export interface Newspaper {
   city: string;
   generatedAt: string;
@@ -44,4 +51,5 @@ export interface Newspaper {
   news: News;
   cityInfo: CityInfo;
   editorial: Editorial;
+  activities: Activity[];
 }

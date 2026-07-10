@@ -52,6 +52,14 @@ export const EditorialSchema = z.object({
 });
 export type Editorial = z.infer<typeof EditorialSchema>;
 
+export const ActivitySchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  category: z.string(),
+  unsplashQuery: z.string(),
+});
+export type Activity = z.infer<typeof ActivitySchema>;
+
 export const NewspaperSchema = z.object({
   city: z.string(),
   generatedAt: z.string(),
@@ -59,5 +67,6 @@ export const NewspaperSchema = z.object({
   news: NewsDataSchema,
   cityInfo: CityInfoDataSchema,
   editorial: EditorialSchema,
+  activities: z.array(ActivitySchema),
 });
 export type Newspaper = z.infer<typeof NewspaperSchema>;
