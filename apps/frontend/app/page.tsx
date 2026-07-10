@@ -64,7 +64,11 @@ export default function Home() {
     const lng = e.latLng.lng();
     setMarkerPos({ lat, lng });
     const detectedCity = await reverseGeocode(lat, lng);
-    if (detectedCity) setCity(detectedCity);
+    if (detectedCity) {
+      setCity(detectedCity);
+      // scroll to top so user sees the populated input field
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }, []);
 
   const formatDate = (iso: string) =>
@@ -110,7 +114,7 @@ export default function Home() {
         {isLoaded && (
           <div className="border-2 border-black">
             <p className="border-b border-black bg-black px-3 py-1 text-xs font-bold uppercase tracking-widest text-white">
-              📍 Or click on the map to select a city
+              📍 Or click on the map — city name fills automatically above
             </p>
             <GoogleMap
               mapContainerStyle={mapContainerStyle}
@@ -122,15 +126,8 @@ export default function Home() {
               {markerPos && <Marker position={markerPos} />}
             </GoogleMap>
             {markerPos && city && (
-              <div className="flex items-center justify-between border-t border-black bg-amber-100 px-3 py-2">
-                <span className="text-sm">Detected: <strong>{city}</strong></span>
-                <button
-                  onClick={() => fetchNewspaper(city)}
-                  disabled={loading}
-                  className="border border-black bg-black px-4 py-1 text-xs font-bold uppercase text-white hover:bg-gray-800 disabled:opacity-50"
-                >
-                  {loading ? "Generating..." : "Generate Newspaper"}
-                </button>
+              <div className="border-t border-black bg-amber-100 px-3 py-2 text-sm">
+                📍 <strong>{city}</strong> selected — press <strong>Generate</strong> above
               </div>
             )}
           </div>
