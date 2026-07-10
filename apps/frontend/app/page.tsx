@@ -11,29 +11,35 @@ const mapContainerStyle = { width: "100%", height: "300px" };
 const defaultCenter = { lat: 48.2082, lng: 16.3738 };
 const LIBRARIES: ("geocoding")[] = ["geocoding"];
 
-async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  const res = await fetch(
-    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${MAPS_KEY}`
-  );
-  const data = await res.json() as { results: { address_components: { types: string[]; long_name: string }[] }[] };
-  for (const result of data.results) {
-    const city = result.address_components.find(
-      (c) => c.types.includes("locality") || c.types.includes("administrative_area_level_1")
-    );
-    if (city) return city.long_name;
-  }
-  return "";
+function reverseGeocode(lat: number, lng: number): Promise<string> {
+  return new Promise((resolve) => {
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+      if (status === "OK" && results) {
+        for (const result of results) {
+          const city = result.address_components.find(
+            (c) => c.types.includes("locality") || c.types.includes("administrative_area_level_1")
+          );
+          if (city) { resolve(city.long_name); return; }
+        }
+      }
+      resolve("");
+    });
+  });
 }
 
-async function geocodeCity(cityName: string): Promise<{ lat: number; lng: number } | null> {
-  const res = await fetch(
-    `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityName)}&key=${MAPS_KEY}`
-  );
-  const data = await res.json() as { results: { geometry: { location: { lat: number; lng: number } } }[] };
-  if (data.results.length > 0) {
-    return data.results[0]!.geometry.location;
-  }
-  return null;
+function geocodeCity(cityName: string): Promise<{ lat: number; lng: number } | null> {
+  return new Promise((resolve) => {
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ address: cityName }, (results, status) => {
+      if (status === "OK" && results && results[0]) {
+        const loc = results[0].geometry.location;
+        resolve({ lat: loc.lat(), lng: loc.lng() });
+      } else {
+        resolve(null);
+      }
+    });
+  });
 }
 
 export default function Home() {
