@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import type { Newspaper, NewsArticle } from "@/types/newspaper";
 
@@ -9,6 +9,7 @@ const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
 
 const mapContainerStyle = { width: "100%", height: "300px" };
 const defaultCenter = { lat: 48.2082, lng: 16.3738 };
+const LIBRARIES: ("geocoding")[] = ["geocoding"];
 
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
   const res = await fetch(
@@ -24,14 +25,28 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
   return "";
 }
 
+async function geocodeCity(cityName: string): Promise<{ lat: number; lng: number } | null> {
+  const res = await fetch(
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityName)}&key=${MAPS_KEY}`
+  );
+  const data = await res.json() as { results: { geometry: { location: { lat: number; lng: number } } }[] };
+  if (data.results.length > 0) {
+    return data.results[0]!.geometry.location;
+  }
+  return null;
+}
+
 export default function Home() {
   const [city, setCity] = useState("");
   const [markerPos, setMarkerPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [mapCenter, setMapCenter] = useState(defaultCenter);
+  const [mapZoom, setMapZoom] = useState(4);
   const [newspaper, setNewspaper] = useState<Newspaper | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const geocodeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: MAPS_KEY });
+  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: MAPS_KEY, libraries: LIBRARIES });
 
   const fetchNewspaper = async (cityName: string) => {
     if (!cityName.trim()) return;
@@ -58,16 +73,29 @@ export default function Home() {
     }
   };
 
+  const handleCityInput = (value: string) => {
+    setCity(value);
+    if (geocodeTimeout.current) clearTimeout(geocodeTimeout.current);
+    if (value.trim().length < 2) return;
+    geocodeTimeout.current = setTimeout(async () => {
+      const pos = await geocodeCity(value.trim());
+      if (pos) {
+        setMarkerPos(pos);
+        setMapCenter(pos);
+        setMapZoom(10);
+      }
+    }, 600);
+  };
+
   const handleMapClick = useCallback(async (e: google.maps.MapMouseEvent) => {
     if (!e.latLng) return;
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();
     setMarkerPos({ lat, lng });
+    setMapCenter({ lat, lng });
     const detectedCity = await reverseGeocode(lat, lng);
     if (detectedCity) {
       setCity(detectedCity);
-      // scroll to top so user sees the populated input field
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, []);
 
@@ -92,7 +120,7 @@ export default function Home() {
           <input
             type="text"
             value={city}
-            onChange={(e) => setCity(e.target.value)}
+            onChange={(e) => handleCityInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && fetchNewspaper(city)}
             placeholder="Enter city name (e.g. Vienna, Paris, Tokyo)..."
             className="flex-1 border-2 border-black bg-white px-4 py-2 font-serif text-base focus:outline-none focus:ring-2 focus:ring-black"
@@ -113,8 +141,8 @@ export default function Home() {
             </p>
             <GoogleMap
               mapContainerStyle={mapContainerStyle}
-              center={markerPos ?? defaultCenter}
-              zoom={markerPos ? 10 : 4}
+              center={mapCenter}
+              zoom={mapZoom}
               onClick={handleMapClick}
               options={{ streetViewControl: false, mapTypeControl: false, fullscreenControl: false }}
             >
