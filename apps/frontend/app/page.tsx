@@ -77,13 +77,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-amber-50 font-serif">
       {/* Header */}
-      <header className="border-b-4 border-black bg-white px-6 py-4 text-center">
-        <p className="text-xs uppercase tracking-widest text-gray-500">Est. 2026 — AI-Powered City Journalism</p>
+      <header className="border-b-4 border-black bg-white px-6 py-6 text-center">
         <h1 className="text-6xl font-black tracking-tight">THE CITY PAPER</h1>
-        <p className="text-sm italic text-gray-600">All the news that fits — powered by AI</p>
-        <div className="mt-2 border-t border-b border-black py-1 text-xs uppercase tracking-widest">
-          {newspaper ? formatDate(newspaper.generatedAt) : formatDate(new Date().toISOString())}
-        </div>
       </header>
 
       {/* Search Section */}
