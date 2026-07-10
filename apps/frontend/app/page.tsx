@@ -6,6 +6,16 @@ import type { Newspaper, NewsArticle, Activity } from "@/types/newspaper";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+const PEXELS_KEY = process.env.NEXT_PUBLIC_PEXELS_API_KEY ?? "";
+
+async function fetchPexelsImage(query: string): Promise<string> {
+  const res = await fetch(
+    `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`,
+    { headers: { Authorization: PEXELS_KEY } }
+  );
+  const data = await res.json() as { photos: { src: { large: string } }[] };
+  return data.photos[0]?.src.large ?? "";
+}
 
 const mapContainerStyle = { width: "100%", height: "300px" };
 const defaultCenter = { lat: 48.2082, lng: 16.3738 };
@@ -46,6 +56,8 @@ export default function Home() {
   const [city, setCity] = useState("");
   const [markerPos, setMarkerPos] = useState<{ lat: number; lng: number } | null>(null);
   const [newspaper, setNewspaper] = useState<Newspaper | null>(null);
+  const [cityImage, setCityImage] = useState("");
+  const [activityImages, setActivityImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const geocodeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,6 +87,13 @@ export default function Home() {
       const data = await res.json() as Newspaper & { error?: string };
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Unknown error");
       setNewspaper(data);
+      // fetch Pexels images in parallel
+      const [cityImg, ...actImgs] = await Promise.all([
+        fetchPexelsImage(`${cityName} city skyline`),
+        ...(data.activities ?? []).map((a: Activity) => fetchPexelsImage(a.unsplashQuery)),
+      ]);
+      setCityImage(cityImg ?? "");
+      setActivityImages(actImgs);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -192,6 +211,13 @@ export default function Home() {
             <p className="text-xs uppercase tracking-widest opacity-75">{formatDate(newspaper.generatedAt)}</p>
           </div>
 
+          {cityImage && (
+            <div className="mb-6 border-2 border-black overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={cityImage} alt={newspaper.city} className="h-64 w-full object-cover" />
+            </div>
+          )}
+
           <div className="mb-6 border-2 border-black bg-white p-6">
             <p className="mb-2 border-b border-black pb-1 text-xs font-bold uppercase tracking-widest">⭐ Story of the Day</p>
             <p className="text-lg leading-relaxed">{newspaper.editorial.storyOfTheDay}</p>
@@ -266,11 +292,11 @@ export default function Home() {
                 🗺️ Must-See in {newspaper.city}
               </p>
               <div className="grid grid-cols-3 gap-4">
-                {newspaper.activities.map((activity: Activity) => (
+                {newspaper.activities.map((activity: Activity, idx: number) => (
                   <div key={activity.name} className="border-2 border-black bg-white overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`https://picsum.photos/seed/${encodeURIComponent(activity.unsplashQuery)}/400/200`}
+                      src={activityImages[idx] ?? `https://picsum.photos/seed/${encodeURIComponent(activity.name)}/400/200`}
                       alt={activity.name}
                       className="h-36 w-full object-cover"
                     />
