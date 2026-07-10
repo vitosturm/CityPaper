@@ -270,12 +270,9 @@ export default function Home() {
                   <div key={activity.name} className="border-2 border-black bg-white overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`https://source.unsplash.com/400x200/?${encodeURIComponent(activity.unsplashQuery)}`}
+                      src={`https://picsum.photos/seed/${encodeURIComponent(activity.unsplashQuery)}/400/200`}
                       alt={activity.name}
                       className="h-36 w-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://source.unsplash.com/400x200/?${encodeURIComponent(activity.category)}`;
-                      }}
                     />
                     <div className="p-3">
                       <span className="mb-1 inline-block border border-black px-2 py-0.5 text-xs font-bold uppercase tracking-widest">
