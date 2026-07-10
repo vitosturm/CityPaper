@@ -39,11 +39,15 @@ export default function Home() {
     setError("");
     setNewspaper(null);
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 60000);
       const res = await fetch(`${API_URL}/agent`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ city: cityName }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       const data = await res.json() as Newspaper & { error?: string };
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Unknown error");
       setNewspaper(data);
