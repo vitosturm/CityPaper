@@ -1,5 +1,5 @@
 import { run, setOpenAIAPI, OpenAIProvider, setDefaultModelProvider } from "@openai/agents";
-import { openaiClient } from "#config";
+import OpenAI from "openai";
 import { EditorialSchema, NewspaperSchema } from "#schemas";
 import type { Newspaper, WeatherData, NewsData, CityInfoData } from "#schemas";
 import { weatherAgent } from "./weather.agent.js";
@@ -7,11 +7,14 @@ import { newsAgent } from "./news.agent.js";
 import { cityInfoAgent } from "./cityinfo.agent.js";
 import { editorAgent } from "./editor.agent.js";
 
-// Configure the SDK to use our Ollama-backed OpenAI-compatible client
-// and the Chat Completions API (Ollama does not support the Responses API)
+const agentClient =
+  process.env.NODE_ENV === "development"
+    ? new OpenAI({ baseURL: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434/v1", apiKey: "ollama" })
+    : new OpenAI({ baseURL: "https://api.groq.com/openai/v1", apiKey: process.env.GROQ_API_KEY ?? "" });
+
 setOpenAIAPI("chat_completions");
 setDefaultModelProvider(
-  new OpenAIProvider({ openAIClient: openaiClient as never })
+  new OpenAIProvider({ openAIClient: agentClient as never })
 );
 
 export async function runOrchestrator(city: string): Promise<Newspaper> {
