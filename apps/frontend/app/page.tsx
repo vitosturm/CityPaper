@@ -39,12 +39,15 @@ async function geocodeCity(cityName: string): Promise<{ lat: number; lng: number
 export default function Home() {
   const [city, setCity] = useState("");
   const [markerPos, setMarkerPos] = useState<{ lat: number; lng: number } | null>(null);
-  const [mapCenter, setMapCenter] = useState(defaultCenter);
-  const [mapZoom, setMapZoom] = useState(4);
   const [newspaper, setNewspaper] = useState<Newspaper | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const geocodeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
+  }, []);
 
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: MAPS_KEY, libraries: LIBRARIES });
 
@@ -81,8 +84,10 @@ export default function Home() {
       const pos = await geocodeCity(value.trim());
       if (pos) {
         setMarkerPos(pos);
-        setMapCenter(pos);
-        setMapZoom(10);
+        if (mapRef.current) {
+          mapRef.current.panTo(pos);
+          mapRef.current.setZoom(10);
+        }
       }
     }, 600);
   };
@@ -92,7 +97,6 @@ export default function Home() {
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();
     setMarkerPos({ lat, lng });
-    setMapCenter({ lat, lng });
     const detectedCity = await reverseGeocode(lat, lng);
     if (detectedCity) {
       setCity(detectedCity);
@@ -141,8 +145,9 @@ export default function Home() {
             </p>
             <GoogleMap
               mapContainerStyle={mapContainerStyle}
-              center={mapCenter}
-              zoom={mapZoom}
+              center={defaultCenter}
+              zoom={4}
+              onLoad={onMapLoad}
               onClick={handleMapClick}
               options={{ streetViewControl: false, mapTypeControl: false, fullscreenControl: false }}
             >
